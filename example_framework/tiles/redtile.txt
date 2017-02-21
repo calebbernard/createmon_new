@@ -1,0 +1,10 @@
+Ascii:
+.
+RGB:
+255
+0
+0
+blocking:
+no
+interact:
+0

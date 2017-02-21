@@ -1,0 +1,19 @@
+width / height:
+10
+10
+tiles:
+redtile*10
+redtile stairs redtile*8
+redtile*10
+redtile*10
+redtile*10
+redtile*10
+redtile*5 block redtile*4
+redtile*10
+redtile*10
+redtile*10
+warps:
+1
+Subfolder/sample_map.txt in: 1 1 out: 2 8
+Music:
+tone.mp3

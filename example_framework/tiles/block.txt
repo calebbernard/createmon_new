@@ -1,0 +1,11 @@
+Ascii:
+B
+RGB:
+64
+255
+64
+blocking:
+yes
+interact:
+1
+This tile is blocking! \ You can't pass through.

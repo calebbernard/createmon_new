@@ -1,0 +1,24 @@
+Game name:
+Template
+Startup text:
+Game template \ This project is meant to demonstrate the file formats and directory structure in a minimal way, to provide a reference or a starting point.
+Background color:
+255
+255
+128
+Text color:
+128
+128
+255
+Screen Size (width / height):
+50
+50
+Start map:
+Subfolder/sample_map.txt
+Start coordinates:
+1
+1
+player rgb:
+128
+0
+255

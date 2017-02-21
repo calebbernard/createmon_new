@@ -1,0 +1,19 @@
+width / height:
+10
+10
+tiles:
+bluetile*10
+bluetile*10
+bluetile*10
+bluetile*10
+bluetile*10
+bluetile*5 stairs bluetile*4
+bluetile*10
+bluetile*10
+bluetile*10
+bluetile*10
+warps:
+1
+sample_2.txt in: 5 5 out: 1 1
+Music:
+white_noise.ogg
