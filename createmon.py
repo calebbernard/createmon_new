@@ -61,6 +61,7 @@ class Object:
             if not is_blocked(self.x + dx, self.y + dy):
                 self.x += dx
                 self.y += dy
+                check_trigger(player.x, player.y, "location")
 
     def draw(self):
         #set the color and then draw the character that represents this object at its position
@@ -341,8 +342,9 @@ def parsemap(file):
     f.close()
     map = Map(width, height, tiles, warps, song_path, triggers)
 
-# I made this function just to make it clearer what's going on when I call readline but don't store the value.
-# This will also make it easier to find / remove those calls, if I decide to remove comment lines from the file formats.
+# I made this function just to make it clearer what's going on when I call
+# readline but don't store the value. This will also make it easier to find /
+# remove those calls, if I decide to remove comment lines from the file formats.
 def skipline(file, numlines=1):
     for x in range(numlines):
         file.readline()
@@ -564,7 +566,6 @@ def play_game():
         exit = handle_keys()
         if exit:
             break
-        check_trigger(player.x, player.y, "location")
 
 # Program entry point:
 new_game()
