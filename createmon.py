@@ -117,6 +117,9 @@ class Player(Object):
         self.party = party
         self.items = items
 
+    def inventory(self):
+        menu("INVENTORY", self.items)
+
 class Monster:
     def __init__(self, species, level, ev, iv, exp):
         self.species = species
@@ -143,7 +146,8 @@ class Monster:
         self.speed = (((elf.base_speed + self.iv[5]) * 2 + (math.sqrt(self.ev[5])/4)*self.level)/100) + 5
 
 class Trigger:
-    def __init__(self, x, y, style, action, argument):
+    def __init__(self, flag, x, y, style, action, argument):
+        self.flag = flag
         self.x = x
         self.y = y
         self.action = action
@@ -156,17 +160,39 @@ def trigger(action, argument):
     if action == "warp":
         argumentList = argument.split()
         warp_to(argumentList[0], int(argumentList[2]), int(argumentList[4]))
+    if action == "add_item":
+        add_item(argument.strip())
+    if action == "block_flag":
+        for flag in argument.split():
+            block_flag(flag)
+    if action == "unblock_flag":
+        for flag in argument.split():
+            unblock_flag(flag)
 
 def warp_to(map, x, y):
     parsemap(map)
     player.x = x
     player.y = y
 
+def add_item(item):
+    player.items.append(item)
+
+def block_flag(flag):
+    global blocked_flags
+    if not flag in blocked_flags:
+        blocked_flags.append(flag)
+
+def unblock_flag(flag):
+    global blocked_flags
+    if flag in blocked_flags:
+        blocked_flags.remove(flag)
+
 def check_trigger(x, y, style):
     for entry in map.triggers:
         if entry.style == style:
             if entry.x == x and entry.y == y:
-                trigger(entry.action, entry.argument)
+                if not entry.flag in blocked_flags:
+                    trigger(entry.action, entry.argument)
 
 def is_blocked(x, y):
     #first test the map tile
@@ -205,15 +231,17 @@ def handle_keys():
             player.dir = "right"
             player.move(1, 0)
         elif key.vk == libtcod.KEY_ENTER:
-            choice = menu("Menu", ["Save", "Load", "MainMenu", "Cancel"])
+            choice = menu("Menu", ["Items", "Save", "Load", "MainMenu"])
             if choice == 0:
-                save_game()
+                player.inventory()
             if choice == 1:
+                save_game()
+            if choice == 2:
                 try:
                     load_game()
                 except:
                     display_text("No save file found!")
-            if choice == 2:
+            if choice == 3:
                 new_game()
         elif chr(key.c) == 'x':
             player.warp()
@@ -323,22 +351,17 @@ def parsemap(file):
         song_path = song
     else:
         song_path = game_dir + "/sound/music/" + song
-    # Read Location Triggers
+    # Read Triggers
+    # Previously triggers were separated in the file format by location vs.
+        # interaction, but that can be conveyed as a property of a generic
+        # trigger, and this also leaves room for additional trigger types.
     skipline(f)
     triggers = []
-    numLocTriggers = int(f.readline())
-    for x in range (numLocTriggers):
+    numTriggers = int(f.readline())
+    for x in range (numTriggers):
         trigger = (f.readline()).split()
         triggerArg = f.readline()
-        triggers.append(Trigger(int(trigger[1]), int(trigger[3]), "location", trigger[5], triggerArg))
-    # Read Interaction Triggers
-    skipline(f)
-    interactTriggers = []
-    numInteractTriggers = int(f.readline())
-    for x in range (numInteractTriggers):
-        trigger = (f.readline()).split()
-        triggerArg = f.readline()
-        triggers.append(Trigger(int(trigger[1]), int(trigger[3]), "interaction", trigger[5], triggerArg))
+        triggers.append(Trigger(trigger[1], int(trigger[3]), int(trigger[5]), trigger[9], trigger[7], triggerArg))
     f.close()
     map = Map(width, height, tiles, warps, song_path, triggers)
 
@@ -349,6 +372,7 @@ def skipline(file, numlines=1):
     for x in range(numlines):
         file.readline()
 
+# Bug in menu / inventory code? Next page doesn't seem to be working quite right.
 def menu(caption, options):
     clearscreen()
     libtcod.console_set_default_foreground(con, text_color)
@@ -424,6 +448,8 @@ def menu(caption, options):
             # Navigate to next page
             elif int(chr(key.c)) == 0 and page < num_pages - 1:
                 page += 1
+        elif chr(key.c) == 'x':
+            return -1
     return choice
 
 def display_text(text):
@@ -500,7 +526,7 @@ def display_text(text):
     key = libtcod.console_wait_for_keypress(True)
 
 def new_game():
-    global player, inventory, party, game_state, map, view_x, view_y, con, game_dir, text_color, music_paused
+    global player, inventory, party, game_state, map, view_x, view_y, con, game_dir, text_color, music_paused, blocked_flags
     music_paused = False
     f = open("./init.txt", "r")
     skipline(f)
@@ -546,13 +572,15 @@ def new_game():
             continue_game = 0
     if not continue_game:
         display_text(welcome_text)
-        # Initialize the player -
-        player = Player(start_x, start_y, '@', 'player', player_color, [], [], blocks=True, dir="up")
-    print map.music
+        # Initialize the player
+        # the Cancel button is treated as a pseudo-item for now
+        inventory = ["potion"]
+        player = Player(start_x, start_y, '@', 'player', player_color, [], inventory, blocks=True, dir="up")
     if map.music != "none":
         mixer.music.load(map.music)
         mixer.music.set_volume(.5)
         mixer.music.play(-1)
+    blocked_flags = []
     game_state = 'playing'
 
 def play_game():
